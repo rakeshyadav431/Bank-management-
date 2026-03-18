@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bank Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: #111;
+      color: white;
+      height: 100vh;
+      padding: 10px;
+    }
+
+    .sidebar button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      background: #222;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .sidebar button:hover {
+      background: #007bff;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      padding: 20px;
+      background: #f4f6f8;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+    }
+
+    button.action {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <h3>🏦 Dashboard</h3>
+
+  <button onclick="showSection('create')">Create Account</button>
+  <button onclick="showSection('deposit')">Deposit</button>
+  <button onclick="showSection('withdraw')">Withdraw</button>
+  <button onclick="showSection('transactions')">Transactions</button>
+  <button onclick="showSection('graph')">Graphs</button>
+</div>
+
+<div class="main">
+
+  <!-- Create Account -->
+  <div id="create" class="card">
+    <h3>Create Account</h3>
+    <input id="name" placeholder="Name">
+    <input id="mobile" placeholder="Mobile">
+    <input id="balance" placeholder="Initial Balance">
+    <button class="action" onclick="createAccount()">Create</button>
+  </div>
+
+  <!-- Deposit -->
+  <div id="deposit" class="card" style="display:none">
+    <h3>Deposit</h3>
+    <input id="d_acc" placeholder="Account No">
+    <input id="d_amt" placeholder="Amount">
+    <button class="action" onclick="deposit()">Deposit</button>
+  </div>
+
+  <!-- Withdraw -->
+  <div id="withdraw" class="card" style="display:none">
+    <h3>Withdraw</h3>
+    <input id="w_acc" placeholder="Account No">
+    <input id="w_amt" placeholder="Amount">
+    <button class="action" onclick="withdraw()">Withdraw</button>
+  </div>
+
+  <!-- Transactions -->
+  <div id="transactions" class="card" style="display:none">
+    <h3>Transactions</h3>
+    <input id="t_acc" placeholder="Account No">
+    <button onclick="showTransactions()">View</button>
+    <div id="t_data"></div>
+  </div>
+
+  <!-- Graph -->
+  <div id="graph" class="card" style="display:none">
+    <h3>Graph</h3>
+    <canvas id="chart"></canvas>
+  </div>
+
+</div>
+
+<script>
+let accounts = JSON.parse(localStorage.getItem("accounts")) || [];
+let chart;
+
+// Switch sections
+function showSection(id) {
+  document.querySelectorAll(".card").forEach(c => c.style.display = "none");
+  document.getElementById(id).style.display = "block";
+}
+
+// Create Account
+function createAccount() {
+  let name = nameInput = document.getElementById("name").value;
+  let mobile = document.getElementById("mobile").value;
+  let balance = parseInt(document.getElementById("balance").value);
+
+  let accNo = "ACC" + Math.floor(Math.random()*100000);
+
+  accounts.push({
+    name, mobile, accNo,
+    balance: balance || 0,
+    transactions: []
+  });
+
+  localStorage.setItem("accounts", JSON.stringify(accounts));
+
+  alert("Account Created: " + accNo);
+}
+
+// Deposit
+function deposit() {
+  let acc = document.getElementById("d_acc").value;
+  let amt = parseInt(document.getElementById("d_amt").value);
+
+  let a = accounts.find(x => x.accNo === acc);
+  if (!a) return alert("Account not found");
+
+  a.balance += amt;
+  a.transactions.push("Deposited ₹" + amt);
+
+  localStorage.setItem("accounts", JSON.stringify(accounts));
+  alert("Deposited");
+}
+
+// Withdraw
+function withdraw() {
+  let acc = document.getElementById("w_acc").value;
+  let amt = parseInt(document.getElementById("w_amt").value);
+
+  let a = accounts.find(x => x.accNo === acc);
+  if (!a) return alert("Account not found");
+
+  if (amt > a.balance) return alert("Insufficient");
+
+  a.balance -= amt;
+  a.transactions.push("Withdrew ₹" + amt);
+
+  localStorage.setItem("accounts", JSON.stringify(accounts));
+  alert("Withdrawn");
+}
+
+// Transactions
+function showTransactions() {
+  let acc = document.getElementById("t_acc").value;
+  let a = accounts.find(x => x.accNo === acc);
+
+  if (!a) return alert("Account not found");
+
+  document.getElementById("t_data").innerHTML =
+    a.transactions.map(t => `<p>${t}</p>`).join("");
+
+  showGraph(a);
+}
+
+// Graph
+function showGraph(account) {
+  let dep = account.transactions.filter(t => t.includes("Deposited")).length;
+  let wit = account.transactions.filter(t => t.includes("Withdrew")).length;
+
+  let ctx = document.getElementById("chart");
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Deposit", "Withdraw"],
+      datasets: [{
+        data: [dep, wit],
+        backgroundColor: ["green", "red"]
+      }]
+    }
+  });
+}
+</script>
+
+</body>
+</html>
