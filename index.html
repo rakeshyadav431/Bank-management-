@@ -1,190 +1,237 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Topper Bank System</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
-  <!-- Charts + PDF -->
+  <title>Bank Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    body { margin:0; font-family: Arial; display:flex; }
-    .sidebar { width:220px; background:#111; color:white; padding:10px; height:100vh; }
-    .sidebar button { width:100%; padding:10px; margin:5px 0; background:#222; color:white; border:none; }
-    .main { flex:1; padding:20px; background:#f4f6f8; }
-    .card { background:white; padding:20px; border-radius:10px; width:400px; margin-bottom:20px; }
-    input { width:100%; padding:10px; margin:5px 0; }
+    body {
+      margin:0;
+      font-family: Arial;
+      display:flex;
+      background:#f4f6f9;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width:220px;
+      background:#1e293b;
+      color:white;
+      height:100vh;
+      padding:20px;
+    }
+
+    .sidebar h2 {
+      margin-bottom:20px;
+    }
+
+    .menu button {
+      width:100%;
+      padding:12px;
+      margin:5px 0;
+      border:none;
+      background:#334155;
+      color:white;
+      cursor:pointer;
+      text-align:left;
+    }
+
+    .menu button.active {
+      background:#0ea5e9;
+    }
+
+    /* MAIN */
+    .main {
+      flex:1;
+      padding:20px;
+    }
+
+    .top {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .cards {
+      display:flex;
+      gap:20px;
+      margin:20px 0;
+    }
+
+    .card {
+      flex:1;
+      padding:20px;
+      border-radius:10px;
+      color:white;
+    }
+
+    .green { background:#22c55e; }
+    .blue { background:#3b82f6; }
+    .red { background:#ef4444; }
+
+    .section {
+      background:white;
+      padding:20px;
+      border-radius:10px;
+      margin-top:20px;
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+    }
+
+    th, td {
+      padding:10px;
+      border-bottom:1px solid #ddd;
+    }
+
+    .btn {
+      padding:8px 12px;
+      background:#3b82f6;
+      color:white;
+      border:none;
+      cursor:pointer;
+    }
+
+    .badge-dep { background:green; color:white; padding:5px 10px; border-radius:5px; }
+    .badge-wit { background:red; color:white; padding:5px 10px; border-radius:5px; }
+
+    .flex {
+      display:flex;
+      gap:20px;
+    }
   </style>
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
-  <h3>🏦 Bank</h3>
-  <button onclick="show('dashboard')">Dashboard</button>
-  <button onclick="show('create')">Create Account</button>
-  <button onclick="show('deposit')">Deposit</button>
-  <button onclick="show('withdraw')">Withdraw</button>
-  <button onclick="show('transactions')">Transactions</button>
-  <button onclick="show('graph')">Analytics</button>
-  <button onclick="logout()">Logout</button>
+  <h2>🏦 Bank</h2>
+  <div class="menu">
+    <button class="active">Dashboard</button>
+    <button>Create Account</button>
+    <button>Deposit</button>
+    <button>Withdraw</button>
+    <button>Transactions</button>
+    <button>Analytics</button>
+    <button onclick="logout()">Logout</button>
+  </div>
 </div>
 
+<!-- MAIN -->
 <div class="main">
 
-<!-- LOGIN -->
-<div id="login" class="card">
-  <h3>Employee Login</h3>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-</div>
+  <div class="top">
+    <h2>Welcome admin 👨‍💼</h2>
+    <button class="btn">Download Passbook</button>
+  </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="card" style="display:none">
-  <h3>Dashboard</h3>
-  <p id="welcome"></p>
-</div>
+  <!-- CARDS -->
+  <div class="cards">
+    <div class="card green">
+      <h3>Total Accounts</h3>
+      <h2 id="totalAcc">3</h2>
+    </div>
 
-<!-- CREATE -->
-<div id="create" class="card" style="display:none">
-  <h3>Create Account</h3>
-  <input id="name" placeholder="Name">
-  <button onclick="createAccount()">Create</button>
-</div>
+    <div class="card blue">
+      <h3>Total Deposits</h3>
+      <h2 id="totalDep">₹ 1000</h2>
+    </div>
 
-<!-- DEPOSIT -->
-<div id="deposit" class="card" style="display:none">
-  <input id="d_acc" placeholder="Account No">
-  <input id="d_amt" placeholder="Amount">
-  <button onclick="deposit()">Deposit</button>
-</div>
+    <div class="card red">
+      <h3>Total Withdrawals</h3>
+      <h2 id="totalWit">₹ 6000</h2>
+    </div>
+  </div>
 
-<!-- WITHDRAW -->
-<div id="withdraw" class="card" style="display:none">
-  <input id="w_acc" placeholder="Account No">
-  <input id="w_amt" placeholder="Amount">
-  <button onclick="withdraw()">Withdraw</button>
-</div>
+  <!-- SEARCH -->
+  <div class="section">
+    <h3>Search Account</h3>
+    <input id="searchAcc" placeholder="Enter Account Number">
+    <button class="btn" onclick="searchAccount()">Search</button>
+  </div>
 
-<!-- TRANSACTIONS -->
-<div id="transactions" class="card" style="display:none">
-  <input id="t_acc" placeholder="Account No">
-  <button onclick="loadTransactions()">Load</button>
-  <div id="t_data"></div>
-  <button onclick="downloadPDF()">Download PDF</button>
-</div>
+  <!-- TABLE + GRAPH -->
+  <div class="flex">
 
-<!-- GRAPH -->
-<div id="graph" class="card" style="display:none">
-  <canvas id="chart"></canvas>
-</div>
+    <div class="section" style="flex:2">
+      <h3>Recent Transactions</h3>
+      <table id="table">
+        <tr>
+          <th>Account</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Date</th>
+        </tr>
+      </table>
+    </div>
+
+    <div class="section" style="flex:1">
+      <h3>Analytics</h3>
+      <canvas id="chart"></canvas>
+    </div>
+
+  </div>
 
 </div>
 
 <script>
-// 🔥 ADD YOUR FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_ID"
-};
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// DEMO DATA
+let transactions = [
+  {acc:"ACC12345", type:"deposit", amount:5000, date:"April 29"},
+  {acc:"ACC67890", type:"withdraw", amount:6000, date:"April 28"},
+  {acc:"ACC12345", type:"deposit", amount:6000, date:"April 27"}
+];
 
-// LOGIN
-function login(){
-  firebase.auth().signInWithEmailAndPassword(
-    email.value, password.value
-  ).then(user=>{
-    document.getElementById("login").style.display="none";
-    show('dashboard');
-    welcome.innerText = "Welcome " + user.user.email;
-  }).catch(e=>alert(e.message));
-}
+// LOAD TABLE
+function loadTable(){
+  let table = document.getElementById("table");
 
-// LOGOUT
-function logout(){
-  firebase.auth().signOut();
-  location.reload();
-}
-
-// CREATE ACCOUNT
-function createAccount(){
-  let acc = "ACC"+Math.floor(Math.random()*100000);
-  db.collection("accounts").doc(acc).set({
-    name:name.value,
-    balance:0,
-    transactions:[]
-  });
-  alert("Created "+acc);
-}
-
-// DEPOSIT
-function deposit(){
-  let ref = db.collection("accounts").doc(d_acc.value);
-  ref.get().then(doc=>{
-    let d = doc.data();
-    d.balance += parseInt(d_amt.value);
-    d.transactions.push("Deposit ₹"+d_amt.value);
-    ref.set(d);
-  });
-}
-
-// WITHDRAW
-function withdraw(){
-  let ref = db.collection("accounts").doc(w_acc.value);
-  ref.get().then(doc=>{
-    let d = doc.data();
-    if(d.balance < w_amt.value) return alert("Insufficient");
-    d.balance -= parseInt(w_amt.value);
-    d.transactions.push("Withdraw ₹"+w_amt.value);
-    ref.set(d);
-  });
-}
-
-// TRANSACTIONS
-function loadTransactions(){
-  db.collection("accounts").doc(t_acc.value).get().then(doc=>{
-    let t = doc.data().transactions;
-    t_data.innerHTML = t.map(x=>`<p>${x}</p>`).join("");
-    drawGraph(t);
+  transactions.forEach(t=>{
+    let row = `
+      <tr>
+        <td>${t.acc}</td>
+        <td>${t.type=="deposit" ? "<span class='badge-dep'>Deposit</span>" : "<span class='badge-wit'>Withdraw</span>"}</td>
+        <td>₹ ${t.amount}</td>
+        <td>${t.date}</td>
+      </tr>
+    `;
+    table.innerHTML += row;
   });
 }
 
 // GRAPH
-function drawGraph(t){
-  let dep = t.filter(x=>x.includes("Deposit")).length;
-  let wit = t.filter(x=>x.includes("Withdraw")).length;
+function loadGraph(){
+  let dep = transactions.filter(t=>t.type=="deposit").length;
+  let wit = transactions.filter(t=>t.type=="withdraw").length;
 
   new Chart(chart,{
-    type:"pie",
+    type:"bar",
     data:{
-      labels:["Deposit","Withdraw"],
-      datasets:[{data:[dep,wit]}]
+      labels:["Deposits","Withdraw"],
+      datasets:[{ data:[dep,wit] }]
     }
   });
 }
 
-// PDF
-function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  let doc = new jsPDF();
-  doc.text(t_data.innerText,10,10);
-  doc.save("passbook.pdf");
+// SEARCH
+function searchAccount(){
+  let acc = searchAcc.value;
+  alert("Searching for " + acc);
 }
 
-// UI
-function show(id){
-  document.querySelectorAll(".card").forEach(c=>c.style.display="none");
-  document.getElementById(id).style.display="block";
+// LOGOUT
+function logout(){
+  alert("Logged out");
 }
+
+// INIT
+loadTable();
+loadGraph();
+
 </script>
 
 </body>
